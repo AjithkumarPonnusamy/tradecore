@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TRADECORE 2026 — INSTITUTIONAL MULTI-ASSET DESIGN SYSTEM
+   Combines Bento Grid, Glassmorphism, Bloomberg Terminal, TradingView,
+   Apple HIG, Linear, and Raycast Design Languages.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Canvas & Surface Tokens */
+  --tc-canvas-base: #08080A;
+  --tc-surface-base: #0F0F13;
+  --tc-surface-elevated: #16161C;
+  --tc-surface-card: #121217;
+  --tc-surface-card-hover: #181820;
+
+  /* Glass Surface Tokens */
+  --tc-glass-bg: rgba(18, 18, 23, 0.72);
+  --tc-glass-border: rgba(255, 255, 255, 0.08);
+  --tc-glass-highlight: rgba(255, 255, 255, 0.04);
+  --tc-glass-blur: 16px;
+
+  /* Hairline Borders & Dividers */
+  --tc-border-subtle: rgba(255, 255, 255, 0.06);
+  --tc-border-default: rgba(255, 255, 255, 0.10);
+  --tc-border-hover: rgba(255, 255, 255, 0.18);
+  --tc-border-active: rgba(59, 130, 246, 0.50);
+
+  /* Typography Colors */
+  --tc-text-primary: #F4F4F6;
+  --tc-text-secondary: #9494A0;
+  --tc-text-muted: #61616E;
+  --tc-text-disabled: #40404C;
+
+  /* Institutional Financial Signals */
+  --tc-profit-green: #10B981;
+  --tc-profit-green-bg: rgba(16, 185, 129, 0.10);
+  --tc-loss-red: #F43F5E;
+  --tc-loss-red-bg: rgba(244, 63, 94, 0.10);
+  --tc-warning-amber: #F59E0B;
+  --tc-warning-amber-bg: rgba(245, 158, 11, 0.10);
+  --tc-info-blue: #3B82F6;
+  --tc-info-blue-bg: rgba(59, 130, 246, 0.10);
+
+  /* DOM Depth & Order Book Tokens */
+  --tc-dom-bid-bg: rgba(16, 185, 129, 0.12);
+  --tc-dom-bid-bar: rgba(16, 185, 129, 0.32);
+  --tc-dom-ask-bg: rgba(244, 63, 94, 0.12);
+  --tc-dom-ask-bar: rgba(244, 63, 94, 0.32);
+  --tc-dom-spread-bg: rgba(255, 255, 255, 0.03);
+
+  /* Interactive States & Focus */
+  --tc-accent-primary: #3B82F6;
+  --tc-accent-primary-hover: #2563EB;
+  --tc-focus-ring: rgba(59, 130, 246, 0.40);
+  --tc-selection-bg: rgba(59, 130, 246, 0.20);
+
+  /* Backward Compatibility Aliases */
+  --color-background: var(--tc-canvas-base);
+  --color-surface: var(--tc-surface-base);
+  --color-card: var(--tc-surface-card);
+  --color-border: var(--tc-border-default);
+  --color-primary-text: var(--tc-text-primary);
+  --color-secondary-text: var(--tc-text-secondary);
+  --color-muted: var(--tc-text-muted);
+  --color-profit: var(--tc-profit-green);
+  --color-loss: var(--tc-loss-red);
+  --color-warning: var(--tc-warning-amber);
+  --color-info: var(--tc-info-blue);
+  --background: var(--tc-canvas-base);
+  --foreground: var(--tc-text-primary);
+}
+
+@theme {
+  --color-tc-canvas: var(--tc-canvas-base);
+  --color-tc-surface: var(--tc-surface-base);
+  --color-tc-elevated: var(--tc-surface-elevated);
+  --color-tc-card: var(--tc-surface-card);
+  --color-tc-card-hover: var(--tc-surface-card-hover);
+  --color-tc-glass: var(--tc-glass-bg);
+  --color-tc-border-subtle: var(--tc-border-subtle);
+  --color-tc-border-default: var(--tc-border-default);
+  --color-tc-border-hover: var(--tc-border-hover);
+  --color-tc-text-primary: var(--tc-text-primary);
+  --color-tc-text-secondary: var(--tc-text-secondary);
+  --color-tc-text-muted: var(--tc-text-muted);
+  --color-tc-profit: var(--tc-profit-green);
+  --color-tc-loss: var(--tc-loss-red);
+  --color-tc-warning: var(--tc-warning-amber);
+  --color-tc-info: var(--tc-info-blue);
+  --color-tc-accent: var(--tc-accent-primary);
+
+  --radius-tc-xs: 4px;
+  --radius-tc-sm: 6px;
+  --radius-tc-md: 10px;
+  --radius-tc-lg: 14px;
+  --radius-tc-xl: 20px;
+  --radius-tc-2xl: 24px;
+  --radius-tc-glass: 16px;
+
+  --shadow-tc-ambient: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --shadow-tc-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-tc-floating: 0 20px 40px -8px rgba(0, 0, 0, 0.6);
+}
+
+/* ─── Base Document Setup ─── */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden !important;
+  position: relative;
+  background-color: var(--tc-canvas-base);
+  color: var(--tc-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Tabular Monospace Financial Numbers ─── */
+.tabular-nums, .font-mono, [data-mono="true"] {
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ─── Bento Grid System ─── */
+.tc-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.tc-bento-widget {
+  background-color: var(--tc-surface-card);
+  border: 1px solid var(--tc-border-subtle);
+  border-radius: 14px;
+  padding: 1.25rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.tc-bento-widget:hover {
+  border-color: var(--tc-border-hover);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Bento Widget Aspect Ratios & Spans */
+.tc-bento-small { grid-column: span 3; }      /* 1x1 on 12-col grid */
+.tc-bento-medium { grid-column: span 4; }     /* 2x1 */
+.tc-bento-wide { grid-column: span 6; }       /* 3x1 */
+.tc-bento-tall { grid-column: span 4; grid-row: span 2; }
+.tc-bento-large { grid-column: span 8; }      /* 4x1 */
+.tc-bento-full { grid-column: span 12; }      /* 6x1 / Full Width */
+
+@media (max-width: 1280px) {
+  .tc-bento-small { grid-column: span 6; }
+  .tc-bento-medium { grid-column: span 6; }
+  .tc-bento-wide { grid-column: span 12; }
+  .tc-bento-large { grid-column: span 12; }
+}
+
+@media (max-width: 768px) {
+  .tc-bento-small,
+  .tc-bento-medium,
+  .tc-bento-wide,
+  .tc-bento-tall,
+  .tc-bento-large,
+  .tc-bento-full {
+    grid-column: span 12;
+  }
+}
+
+/* ─── Glassmorphic Surface Utilities ─── */
+.tc-glass-panel {
+  background: var(--tc-glass-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--tc-glass-border);
+  box-shadow: var(--shadow-tc-glass);
+}
+
+.tc-glass-floating {
+  background: rgba(18, 18, 23, 0.85);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--shadow-tc-floating);
+  border-radius: 16px;
+}
+
+/* ─── Legacy Support Classes ─── */
+.institutional-card {
+  background-color: var(--tc-surface-card) !important;
+  border: 1px solid var(--tc-border-subtle) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.institutional-card:hover {
+  border-color: var(--tc-border-hover) !important;
+}
+
+.institutional-surface {
+  background-color: var(--tc-surface-base) !important;
+  border: 1px solid var(--tc-border-subtle) !important;
+  border-radius: 10px !important;
+}
+
+/* ─── Precision Scrollbars ─── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Micro Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 2s infinite ease-in-out;
+}

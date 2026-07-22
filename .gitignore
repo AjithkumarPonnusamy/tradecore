@@ -1,0 +1,37 @@
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+frontend/tsconfig.tsbuildinfo
+frontend/*.log
+
+# Python / FastAPI
+backend/.venv/
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/local_uploads/
+ai_service/__pycache__/
+ai_service/*/__pycache__/
+*.pyc
+
+# Environment & Credentials
+.env
+*.env
+backend/.env
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker / Logs
+*.log
+docker/*.log

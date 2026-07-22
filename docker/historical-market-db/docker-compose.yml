@@ -1,0 +1,37 @@
+services:
+  historical-market-db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: historical-market-db
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5436}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-historical_market}
+      POSTGRES_USER: ${POSTGRES_USER:-market_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TIMESCALEDB_TELEMETRY: ${TIMESCALEDB_TELEMETRY:-off}
+    volumes:
+      # Named persistent volume for PG data
+      - historical_market_db_data:/var/lib/postgresql/data
+      # Initialization script executed on first boot
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      # Bind mount for backups
+      - ./backups:/backups
+    networks:
+      - historical-market-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-market_admin} -d ${POSTGRES_DB:-historical_market}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  historical_market_db_data:
+    name: historical_market_db_data
+    driver: local
+
+networks:
+  historical-market-net:
+    name: historical-market-net
+    driver: bridge

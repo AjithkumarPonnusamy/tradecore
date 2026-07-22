@@ -1,0 +1,205 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tradecore-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ak
+      POSTGRES_DB: tradecore
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init_tradecore_db.sql:/docker-entrypoint-initdb.d/01_init_tradecore.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tradecore"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: tradecore-redis
+    restart: always
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    container_name: tradecore-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:ak@postgres:5432/tradecore
+      - JWT_SECRET_KEY=super_secret_key_change_me_in_production_1234567890
+      - REDIS_URL=redis://redis:6379/0
+      - LLM_API_BASE=http://ollama:11434/v1
+      - LLM_MODEL=llama3.2:1b
+      - WHISPER_MODEL=large-v3
+      - WHISPER_DEVICE=cpu
+      - AI_SERVICE_URL=http://ai-service:8001
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./backend/local_uploads:/app/local_uploads
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  celery_worker:
+    build:
+      context: ./backend
+      target: development
+    container_name: tradecore-celery
+    command: celery -A app.core.celery_app worker --loglevel=info
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:ak@postgres:5432/tradecore
+      - REDIS_URL=redis://redis:6379/0
+      - LLM_API_BASE=http://ollama:11434/v1
+      - LLM_MODEL=llama3.2:1b
+      - WHISPER_MODEL=large-v3
+      - WHISPER_DEVICE=cpu
+      - AI_SERVICE_URL=http://ai-service:8001
+    volumes:
+      - ./backend:/app
+      - ./backend/local_uploads:/app/local_uploads
+
+  ai-service:
+    build:
+      context: ./ai_service
+    container_name: tradecore-ai-service
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - LLM_API_BASE=http://ollama:11434/v1
+      - LLM_MODEL=llama3.2:1b
+      - WHISPER_MODEL=large-v3
+      - WHISPER_DEVICE=cpu
+      - WHISPER_MODEL_DIR=/root/.cache/huggingface
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend/local_uploads:/app/local_uploads
+      - whisper_models:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  ai-worker:
+    build:
+      context: ./ai_service
+    container_name: tradecore-ai-worker
+    command: celery -A app.celery_app.celery_app worker -Q voice_transcription_queue,trade_extraction_queue,emotion_analysis_queue,summary_generation_queue --loglevel=info --concurrency=1
+    restart: always
+    healthcheck:
+      disable: true
+    depends_on:
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - LLM_API_BASE=http://ollama:11434/v1
+      - LLM_MODEL=llama3.2:1b
+      - WHISPER_MODEL=large-v3
+      - WHISPER_DEVICE=cpu
+      - WHISPER_MODEL_DIR=/root/.cache/huggingface
+    volumes:
+      - ./backend/local_uploads:/app/local_uploads
+      - whisper_models:/root/.cache/huggingface
+
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: tradecore-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ollama-setup:
+    image: ollama/ollama:latest
+    container_name: tradecore-ollama-setup
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for Ollama to start...';
+      until OLLAMA_HOST=ollama ollama list >/dev/null 2>&1; do
+        sleep 2;
+      done;
+      echo 'Ollama started! Pulling model llama3.2:1b...';
+      OLLAMA_HOST=ollama ollama pull llama3.2:1b;
+      echo 'Model pulled successfully!';
+      "
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    container_name: tradecore-frontend
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3005:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  pgdata:
+    driver: local
+  ollama_data:
+    driver: local
+  whisper_models:
+    driver: local
