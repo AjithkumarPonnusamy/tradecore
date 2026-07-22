@@ -35,3 +35,7 @@ Thumbs.db
 # Docker / Logs
 *.log
 docker/*.log
+
+# Agents & Workflows
+.agents/
+
